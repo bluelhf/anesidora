@@ -1,5 +1,5 @@
-> **NOTE**
-> I am not a front-end developer. This code is a mess. I am sorry.
+> **Note**  
+> I am not a front-end developer. This repository is a mess. I am sorry.
 
 # Anesidora
 
