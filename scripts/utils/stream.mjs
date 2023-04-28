@@ -61,3 +61,27 @@ export class ProgressStream extends TransformStream {
         })
     }
 }
+
+/**
+ * Reads the entire stream into a {@link Uint8Array}.
+ * @param {ReadableStream<Uint8Array>} stream The stream to read.
+ * @param {number} size The size of the stream in bytes.
+ * @return {Promise<Uint8Array>} A promise that resolves to the entire stream, as a Uint8Array..
+ * */
+export function dangerouslyReadEntireStream(stream, size) {
+    return new Promise((resolve, reject) => {
+        const reader = stream.getReader();
+        const array = new Uint8Array(size);
+        let offset = 0;
+
+        reader.read().then(function process({ done, value }) {
+            if (done) {
+                resolve(array);
+            } else {
+                array.set(value, offset);
+                offset += value.byteLength;
+                reader.read().then(process);
+            }
+        });
+    });
+}

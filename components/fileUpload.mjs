@@ -3,7 +3,8 @@ import { encrypt } from "../scripts/crypt.mjs";
 
 import { API_ENDPOINT, CHUNK_SIZE } from "../scripts/config.mjs";
 import { openFile } from "../scripts/utils/picker.mjs";
-import { ProgressStream } from "../scripts/utils/stream.mjs";
+import { dangerouslyReadEntireStream, ProgressStream } from "../scripts/utils/stream.mjs";
+import { supportsRequestStreams } from "../scripts/compatibility.mjs";
 
 function humanReadableSize(amount, decimals = 2) {
     const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
@@ -78,11 +79,36 @@ export function FileUpload(props) {
 
             let { encrypted, secret } = await encrypt(file.stream().pipeThrough(new ProgressStream(file.size, setProgress)));
 
+            let bodyToSend = encrypted;
+            if (!supportsRequestStreams) {
+                try {
+                    bodyToSend = await dangerouslyReadEntireStream(encrypted, file.size);
+                } catch (error) {
+                    if (error instanceof RangeError) {
+                        setError({
+                            operatorReport: "Request streams not supported and " + file.size + "-byte file does not fit into array",
+                            cause: error,
+                            userReport: {
+                                title: "The file is too large for this browser.",
+                                userSuggestions: [
+                                    "Try with a modern version of Chrome.",
+                                    "Try again with a smaller file.",
+                                ]
+                            }
+                        });
+                        return;
+                    } else throw error;
+                }
+            }
 
             const response = await fetch(API_ENDPOINT + "/upload", {
+                ...(() => {
+                    if (!supportsRequestStreams) return {};
+                    else return { duplex: "half" }
+                })(),
                 method: "POST",
-                duplex: "half",
-                body: encrypted, headers: {
+                body: bodyToSend,
+                headers: {
                     "Content-Type": "application/octet-stream",
                     "X-File-Name": file.name
                 }
@@ -90,15 +116,22 @@ export function FileUpload(props) {
 
             const body = await response.text();
             if (!response.ok) throw new Error("Upload failed, got status " + response.status + ": " + body);
-            setLink(document.location.href.replace(document.location.hash, "") + "#" + body + ";" + secret);
+            if (document.location.hash.length === 0) {
+                setLink(document.location.href + "#" + body + ";" + secret);
+            } else {
+                setLink(document.location.href.replace(document.location.hash, "") + "#" + body + ";" + secret);
+            }
             setState("finished");
         } catch (error) {
-            console.error(error);
             setError({
-                title: "Uploading the file failed.",
-                userSuggestions: [
-                    "Try again later.",
-                ]
+                operatorReport: "Uncaught exception while uploading file",
+                cause: error,
+                userReport: {
+                    title: "Uploading the file failed.",
+                    userSuggestions: [
+                        "Try again later.",
+                    ]
+                }
             });
         }
     }

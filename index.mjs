@@ -11,11 +11,7 @@ function App() {
     useEffect(() => window.location.hash = hash, [hash]);
 
     const compatibility = checkCompatibility();
-    if (!compatibility?.compatible) {
-        console.error(compatibility?.operatorReport);
-    }
-
-    const [error, setError] = useState(compatibility?.userReport ?? null);
+    const [error, setError] = useState(compatibility?.error ?? null);
 
     return html`
         <div id="app">

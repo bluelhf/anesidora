@@ -22,7 +22,8 @@ Several features used by Anesidora are not supported by all browsers:
         - Mozilla: [Harmful Standard Position](https://mozilla.github.io/standards-positions/#native-file-system), won't implement
         - WebKit: [Opposing Standard Position](https://github.com/WebKit/standards-positions/issues/28), won't implement
 
-So, **only Chromium 105+ is supported. Firefox and Safari are not supported.**
+Using Anesidora on a browser that does not support these features may result in
+file size limitations or out of memory errors when uploading large files.
 
 ## Serving
 

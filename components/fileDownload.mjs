@@ -22,10 +22,13 @@ export function FileDownload(props) {
     if (filenameRequest === null) {
         setFilenameRequest(getFilename(uuid).then((filename) => {
             if (!filename) setError({
-                title: "The file you are trying to download does not exist.",
-                userSuggestions: [
-                    "Ensure the link you are trying to access is correct.",
-                ]
+                operatorReport: "Did not receive X-File-Name in HEAD request, so file missing",
+                userReport: {
+                    title: "The file you are trying to download does not exist.",
+                    userSuggestions: [
+                        "Ensure the link you are trying to access is correct.",
+                    ]
+                }
             });
             if (state === "loading") setState("ready");
             return filename;
@@ -43,22 +46,42 @@ export function FileDownload(props) {
 
             setTotal(contentLength);
             setState("started");
-            await (await decrypt({secret, encrypted: response.body}))
-                .pipeThrough(new ProgressStream(contentLength, setProgress))
-                .pipeThrough(new TransformStream({
-                    flush() {
-                        setState("sync");
-                    }
-                })).pipeTo(await handle.createWritable());
+            try {
+                await (await decrypt({secret, encrypted: response.body}))
+                    .pipeThrough(new ProgressStream(contentLength, setProgress))
+                    .pipeThrough(new TransformStream({
+                        flush() {
+                            setState("sync");
+                        }
+                    })).pipeTo(await handle.createWritable());
+            } catch (error) {
+                if (error.name === "QuotaExceededError") {
+                    setError({
+                        operatorReport: "Streaming download not supported and origin-private file system quota exceeded",
+                        cause: error,
+                        userReport: {
+                            title: "The file is too large for this browser.",
+                            userSuggestions: [
+                                "Try with a modern version of Chrome.",
+                                "Try again with a smaller file.",
+                            ]
+                        }
+                    });
+                } else throw error;
+            }
+
 
             setState("finished");
         } catch (error) {
-            console.error(error);
             setError({
-                title: "Downloading the file failed.",
-                userSuggestions: [
-                    "Try again later.",
-                ]
+                operatorReport: "Uncaught exception while downloading file",
+                cause: error,
+                userReport: {
+                    title: "Downloading the file failed.",
+                    userSuggestions: [
+                        "Try again later.",
+                    ]
+                }
             });
         }
     };
