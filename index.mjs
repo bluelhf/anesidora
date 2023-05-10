@@ -8,7 +8,7 @@ import { checkCompatibility } from './scripts/compatibility.mjs';
 
 function App() {
     const [hash] = useState(window.location.hash);
-    useEffect(() => window.location.hash = hash, [hash]);
+    useEffect(() => {if (hash.length > 0) { window.location.hash = hash; }}, [hash]);
 
     const compatibility = checkCompatibility();
     const [error, setError] = useState(compatibility?.error ?? null);
