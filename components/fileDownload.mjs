@@ -7,7 +7,7 @@ import { saveFile } from "../scripts/utils/picker.mjs";
 
 async function getFilename(uuid) {
     const response = (await fetch(API_ENDPOINT + "/download/" + uuid, { method: "HEAD" }));
-    return response.headers.get("X-File-Name");
+    return decodeURIComponent(response.headers.get("X-File-Name"));
 }
 
 export function FileDownload(props) {

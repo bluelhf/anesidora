@@ -110,7 +110,7 @@ export function FileUpload(props) {
                 body: bodyToSend,
                 headers: {
                     "Content-Type": "application/octet-stream",
-                    "X-File-Name": file.name
+                    "X-File-Name": encodeURIComponent(file.name)
                 }
             });
 
@@ -119,7 +119,7 @@ export function FileUpload(props) {
             if (document.location.hash.length === 0) {
                 setLink(document.location.href + "#" + body + ";" + secret);
             } else {
-                setLink(document.location.href.replace(document.location.hash, "") + "#" + body + ";" + secret);
+                setLink(document.location.href.replace(document.location.hash, "#" + body + ";" + secret));
             }
             setState("finished");
         } catch (error) {
