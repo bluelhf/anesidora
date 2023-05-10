@@ -34,8 +34,7 @@ export async function saveFile(name) {
         return await window.showSaveFilePicker({"suggestedName": name})
             .catch(abortDefault(null));
     } else {
-        const persistent = await navigator.storage.persist();
-
+        await navigator.storage.persist();
 
         const directory = await navigator.storage.getDirectory();
         const handle = await directory.getFileHandle(name, {create: true});
@@ -58,7 +57,9 @@ export async function saveFile(name) {
                         a.href = url;
                         a.download = name;
                         a.click();
-                        URL.revokeObjectURL(url);
+                        setTimeout(() => {
+                            URL.revokeObjectURL(url);
+                        }, 40000);
                     }
                 })
             }
