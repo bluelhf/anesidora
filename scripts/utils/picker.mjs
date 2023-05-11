@@ -38,28 +38,24 @@ export async function saveFile(name) {
 
         const directory = await navigator.storage.getDirectory();
         const handle = await directory.getFileHandle(name, {create: true});
-        const file = await handle.getFile();
         const writable = await handle.createWritable();
-        const writer = writable.getWriter();
         return {
             createWritable: () => {
                 return new WritableStream({
                     write(chunk) {
-                        return writer.write(chunk);
+                        return writable.write(chunk);
                     },
                     abort(reason) {
-                        return writer.abort(reason);
+                        return writable.abort(reason);
                     },
-                    close() {
-                        writer.close();
-                        const url = URL.createObjectURL(file);
+                    async close() {
+                        await writable.close();
+                        const url = URL.createObjectURL(await handle.getFile());
                         const a = document.createElement("a");
                         a.href = url;
                         a.download = name;
                         a.click();
-                        setTimeout(() => {
-                            URL.revokeObjectURL(url);
-                        }, 40000);
+                        setTimeout(() => URL.revokeObjectURL(url), 40000);
                     }
                 })
             }
