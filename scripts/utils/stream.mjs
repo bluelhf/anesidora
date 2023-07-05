@@ -94,6 +94,27 @@ export function toStream(bytearray) {
     });
 }
 
+export function buildStream(...objects) {
+    return new ReadableStream({
+        async start(controller) {
+            for (const obj of objects) {
+                if (obj instanceof ArrayBuffer) {
+                    controller.enqueue(new Uint8Array(obj));
+                } else if (obj instanceof ReadableStream) {
+                    await obj.pipeTo(new WritableStream({
+                        write(chunk) {
+                            controller.enqueue(chunk);
+                        }
+                    }));
+                } else if (obj?.constructor === String) {
+                    controller.enqueue(new TextEncoder().encode(obj));
+                }
+            }
+            controller.close();
+        }
+    });
+}
+
 export function concatStreams(...streams) {
     return new ReadableStream({
         async pull(controller) {

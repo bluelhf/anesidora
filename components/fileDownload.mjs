@@ -3,36 +3,38 @@ import { decrypt } from "../scripts/crypt.mjs";
 
 import { API_ENDPOINT } from "../scripts/config.mjs"
 import { MetadataParser, ProgressStream } from "../scripts/utils/stream.mjs";
+import { DownloadState, PITHOS, UploadState } from "../scripts/pithos.mjs";
+import { humanReadableSize, humanReadableTime } from "../scripts/utils/display.mjs";
 
 export function FileDownload(props) {
     const { hash, setError } = props;
     const [ uuid, secret ] = hash.substring(1).split(";");
 
     const [ state, setState ] = useState("ready");
+
+    const [ start, setStart ] = useState(Date.now());
     const [ progress, setProgress ] = useState(0);
     const [ total, setTotal ] = useState(1);
 
     const beginFileDownload = async () => {
         try {
-            await navigator.storage.persist();
-
-            const directory = await navigator.storage.getDirectory();
-            const handle = await directory.getFileHandle(crypto.randomUUID(), {create: true});
-            const writable = await handle.createWritable();
-
-            const { url } = await (await fetch(API_ENDPOINT + "/download/" + uuid)).json();
-            const response = await fetch(url);
-
-            const contentLength = parseInt(response.headers.get("Content-Length"));
-
-            const metadataParser = new MetadataParser();
-
-            setTotal(contentLength);
-            setState("started");
             try {
-                await (await decrypt({ secret, encrypted: response.body.pipeThrough(new TransformStream(metadataParser)) }))
-                    .pipeThrough(new ProgressStream(contentLength, setProgress))
-                    .pipeTo(writable);
+                const { handle, metadata } = await PITHOS.download(uuid, secret, (event) => {
+                    setState(event.state);
+                    if (event.state === DownloadState.Downloading) {
+                        setStart(event.start);
+                        setProgress(event.progress);
+                        setTotal(event.total);
+                    }
+                });
+
+                const url = URL.createObjectURL(await handle.getFile());
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = metadata.name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 40000);
+
             } catch (error) {
                 if (error.name === "QuotaExceededError") {
                     setError({
@@ -49,20 +51,6 @@ export function FileDownload(props) {
                 } else throw error;
             }
 
-            const metadata = metadataParser.metadata;
-            const file = await handle.getFile();
-
-            {
-                setState("sync");
-                const url = URL.createObjectURL(file);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = metadata.name;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 40000);
-            }
-
-            setState("finished");
         } catch (error) {
             setError({
                 operatorReport: "Uncaught exception while downloading file",
@@ -83,9 +71,17 @@ export function FileDownload(props) {
                 ${(() => {
                     switch (state) {
                         case "ready":    return html`<button class="widget" onclick=${beginFileDownload}> Download file</button>`;
-                        case "started":  return html`<p>Downloading... ${(progress / total * 100).toFixed(2)}%</p>`;
-                        case "sync":     return html`<p>Synchronising disk...</p>`
-                        case "finished": return html`<p>Download finished.</p>`;
+                        case DownloadState.RequestingPermission: return html`<p>Requesting download permission...</p>`;
+                        case DownloadState.Downloading:  return html`
+                    <p>${state.charAt(0).toUpperCase() + state.slice(1)}... ${(progress / total * 100).toFixed(2)}% complete</p>
+                    <p>${humanReadableSize(progress)} / ${humanReadableSize(total)} @ ${humanReadableSize(progress / (Date.now() - start) * 1000, 0)}/s</p>
+                    <p>${(() => {
+                            const elapsed = (Date.now() - start) / 1000.0;
+                            const remaining = (total - progress) / (progress / elapsed);
+                            const totalTime = elapsed + remaining;
+                            return `${humanReadableTime(elapsed)}/${humanReadableTime(totalTime)}; -${humanReadableTime(remaining)}`;
+                        })()}</p>`;
+                        case DownloadState.Done:         return html`<p>Downloaded.</p>`;
                     }
                 })()}
             </div>
