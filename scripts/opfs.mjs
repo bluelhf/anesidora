@@ -7,6 +7,10 @@ export class Opfs {
         const directory = await navigator.storage.getDirectory();
 
         const handle = await directory.getFileHandle(crypto.randomUUID(), { create: true });
+
+        // FIXME(ilari): use web workers and createSyncAccessHandle()
+        //               because webkit sucks and doesn't have createWritable
+
         const writable = await handle.createWritable();
         await stream.pipeTo(writable);
 
