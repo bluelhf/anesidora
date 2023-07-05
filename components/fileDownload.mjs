@@ -2,62 +2,41 @@ import { html, useState } from 'https://esm.sh/htm/preact/standalone';
 import { decrypt } from "../scripts/crypt.mjs";
 
 import { API_ENDPOINT } from "../scripts/config.mjs"
-import { ProgressStream } from "../scripts/utils/stream.mjs";
-import { saveFile } from "../scripts/utils/picker.mjs";
-
-async function getFilename(uuid) {
-    const response = (await fetch(API_ENDPOINT + "/download/" + uuid, { method: "HEAD" }));
-    return decodeURIComponent(response.headers.get("X-File-Name"));
-}
+import { MetadataParser, ProgressStream } from "../scripts/utils/stream.mjs";
 
 export function FileDownload(props) {
     const { hash, setError } = props;
     const [ uuid, secret ] = hash.substring(1).split(";");
 
-    const [ state, setState ] = useState("loading");
+    const [ state, setState ] = useState("ready");
     const [ progress, setProgress ] = useState(0);
     const [ total, setTotal ] = useState(1);
 
-    const [ filenameRequest, setFilenameRequest ] = useState(null);
-    if (filenameRequest === null) {
-        setFilenameRequest(getFilename(uuid).then((filename) => {
-            if (!filename) setError({
-                operatorReport: "Did not receive X-File-Name in HEAD request, so file missing",
-                userReport: {
-                    title: "The file you are trying to download does not exist.",
-                    userSuggestions: [
-                        "Ensure the link you are trying to access is correct.",
-                    ]
-                }
-            });
-            if (state === "loading") setState("ready");
-            return filename;
-        }));
-    }
-
     const beginFileDownload = async () => {
         try {
-            const filename = await filenameRequest;
-            const handle = await saveFile(filename);
-            if (!handle) return;
+            await navigator.storage.persist();
 
-            const response = await fetch(API_ENDPOINT + "/download/" + uuid);
+            const directory = await navigator.storage.getDirectory();
+            const handle = await directory.getFileHandle(crypto.randomUUID(), {create: true});
+            const writable = await handle.createWritable();
+
+            const { url } = await (await fetch(API_ENDPOINT + "/download/" + uuid)).json();
+            const response = await fetch(url);
+
             const contentLength = parseInt(response.headers.get("Content-Length"));
+
+            const metadataParser = new MetadataParser();
 
             setTotal(contentLength);
             setState("started");
             try {
-                await (await decrypt({secret, encrypted: response.body}))
+                await (await decrypt({ secret, encrypted: response.body.pipeThrough(new TransformStream(metadataParser)) }))
                     .pipeThrough(new ProgressStream(contentLength, setProgress))
-                    .pipeThrough(new TransformStream({
-                        flush() {
-                            setState("sync");
-                        }
-                    })).pipeTo(await handle.createWritable());
+                    .pipeTo(writable);
             } catch (error) {
                 if (error.name === "QuotaExceededError") {
                     setError({
-                        operatorReport: "Streaming download not supported and origin-private file system quota exceeded",
+                        operatorReport: "Origin-private file system quota exceeded",
                         cause: error,
                         userReport: {
                             title: "The file is too large for this browser.",
@@ -70,6 +49,18 @@ export function FileDownload(props) {
                 } else throw error;
             }
 
+            const metadata = metadataParser.metadata;
+            const file = await handle.getFile();
+
+            {
+                setState("sync");
+                const url = URL.createObjectURL(file);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = metadata.name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 40000);
+            }
 
             setState("finished");
         } catch (error) {
@@ -91,7 +82,6 @@ export function FileDownload(props) {
             <div>
                 ${(() => {
                     switch (state) {
-                        case "loading":  return html`<p>Loading...</p>`;
                         case "ready":    return html`<button class="widget" onclick=${beginFileDownload}> Download file</button>`;
                         case "started":  return html`<p>Downloading... ${(progress / total * 100).toFixed(2)}%</p>`;
                         case "sync":     return html`<p>Synchronising disk...</p>`

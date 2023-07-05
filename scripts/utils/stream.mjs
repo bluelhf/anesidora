@@ -1,3 +1,26 @@
+import { concatenate } from "./array.mjs";
+
+export class MetadataParser {
+
+    constructor() {
+        this.bytes = new Uint8Array(0);
+        this.metadata = null;
+    }
+
+    transform(chunk, controller) {
+        if (this.metadata === null) {
+            const startOfText = chunk.findIndex((byte) => byte === 2);
+            if (startOfText === -1) {
+                this.bytes = concatenate(this.bytes, chunk);
+            } else {
+                this.bytes = concatenate(this.bytes, chunk.slice(0, startOfText));
+                this.metadata = JSON.parse(new TextDecoder().decode(this.bytes));
+                controller.enqueue(chunk.slice(startOfText + 1));
+            }
+        } else controller.enqueue(chunk);
+    }
+}
+
 /**
  * A TransformStream that splits up the incoming data into chunks of the given size.
  * @param {number} chunkSize The size of the chunks to split the data into.
@@ -62,6 +85,33 @@ export class ProgressStream extends TransformStream {
     }
 }
 
+export function toStream(bytearray) {
+    return new ReadableStream({
+        start(controller) {
+            controller.enqueue(bytearray);
+            controller.close();
+        }
+    });
+}
+
+export function concatStreams(...streams) {
+    return new ReadableStream({
+        async pull(controller) {
+            let stream = streams.shift();
+
+            if (stream) {
+                await stream.pipeTo(new WritableStream({
+                    write(chunk) {
+                        controller.enqueue(chunk);
+                    }
+                }), { preventClose: true });
+            } else {
+                controller.close();
+            }
+        }
+    });
+}
+
 /**
  * Reads the entire stream into a {@link Uint8Array}.
  * @param {ReadableStream<Uint8Array>} stream The stream to read.
@@ -84,4 +134,7 @@ export function dangerouslyReadEntireStream(stream, size) {
             }
         });
     });
+}
+
+export class MetadataParserStream {
 }
