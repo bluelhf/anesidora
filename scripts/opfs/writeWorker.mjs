@@ -1,25 +1,22 @@
-onmessage = async (event) => {
-    const { filename, stream } = event.data;
+let access;
+
+async function handleCreate(event) {
+    const { filename } = event.data;
     const opfs = await navigator.storage.getDirectory();
     const handle = await opfs.getFileHandle(filename, { create: true });
+    access = await handle.createSyncAccessHandle();
+}
 
-    const access = await handle.createSyncAccessHandle();
+async function handleWrite(event) {
+    const { value } = event.data;
+    await access.write(value);
+}
 
-    const reader = stream.getReader();
-    reader.read().then(async function process({ done, value }) {
-        if (done) {
-            await access.close();
-            postMessage({ done: true });
-        } else {
-
-            /*
-            * this operation is actually synchronous now, but it used to be asynchronous
-            * (despite the name), so we might as well have the useless `await` here to be safe
-            * */
-
-            await access.write(value);
-            reader.read().then(process);
-        }
-    });
-
+onmessage = async (event) => {
+    if (event.data.id === 0) await handleCreate(event);
+    if (event.data.id === 1) await handleWrite(event);
+    if (event.data.id === 2) {
+        await access.close();
+        postMessage({ id: 2 });
+    }
 }
