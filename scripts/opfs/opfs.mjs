@@ -1,5 +1,9 @@
+import Polyfills from "../polyfills.mjs";
+
 export class Opfs {
     constructor() {
+        Polyfills.fillCrypto();
+
         this.askedPermission = false;
         this.writeWorker = new Worker("./scripts/opfs/writeWorker.mjs");
     }
