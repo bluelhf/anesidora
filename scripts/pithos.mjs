@@ -1,7 +1,7 @@
 import { decrypt, encrypt } from "./crypt.mjs";
 import { buildStream, MetadataParser, ProgressStream } from "./utils/stream.mjs";
 import { API_ENDPOINT } from "./config.mjs";
-import { Opfs } from "./opfs.mjs";
+import { Opfs } from "./opfs/opfs.mjs";
 
 export const UploadState = {
     Encrypting: "encrypting",
