@@ -1,4 +1,4 @@
-import { html } from 'https://esm.sh/htm/preact/standalone'
+import { html } from '../libs/htm-preact.min.mjs';
 export function Header() {
     return html`
         <header>

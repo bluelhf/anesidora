@@ -1,4 +1,4 @@
-import { html, useState } from 'https://esm.sh/htm/preact/standalone';
+import { html, useState } from '../libs/htm-preact.min.mjs';
 
 import { openFile } from "../scripts/utils/picker.mjs";
 import { PITHOS, UploadState } from "../scripts/pithos.mjs";

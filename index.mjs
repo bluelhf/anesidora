@@ -1,4 +1,4 @@
-import { html, render, useState, useEffect } from 'https://esm.sh/htm/preact/standalone'
+import { html, render, useState, useEffect } from './libs/htm-preact.min.mjs';
 import { Header } from './components/header.mjs';
 import { FileUpload } from './components/fileUpload.mjs';
 import { FileDownload } from './components/fileDownload.mjs';

@@ -1,9 +1,5 @@
-import { html, useState } from 'https://esm.sh/htm/preact/standalone';
-import { decrypt } from "../scripts/crypt.mjs";
-
-import { API_ENDPOINT } from "../scripts/config.mjs"
-import { MetadataParser, ProgressStream } from "../scripts/utils/stream.mjs";
-import { DownloadState, PITHOS, UploadState } from "../scripts/pithos.mjs";
+import { html, useState } from '../libs/htm-preact.min.mjs';
+import { DownloadState, PITHOS } from "../scripts/pithos.mjs";
 import { humanReadableSize, humanReadableTime } from "../scripts/utils/display.mjs";
 
 export function FileDownload(props) {
