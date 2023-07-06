@@ -6,33 +6,62 @@ export class Opfs {
 
         this.askedPermission = false;
         this.writeWorker = new Worker("./scripts/opfs/writeWorker.mjs");
+        this.packetId = 0;
+    }
+
+    async send(worker, packet) {
+        let listeners = {};
+        const uid = this.packetId++;
+        const promise = new Promise((resolve, reject) => {
+            const onMessage = (event) => {
+                if (event.data.uid !== uid) return;
+                resolve(event.data);
+            };
+
+            listeners.message = onMessage
+            worker.addEventListener("message", onMessage);
+
+            const onError = (event) => {
+                if (event.data.uid !== uid) return;
+                reject(event.data);
+            }
+
+            listeners.error = onError;
+            worker.addEventListener("error", onError);
+        });
+
+        worker.postMessage({ ...packet, uid });
+        return await promise.then(() => {
+            for (const listener of Object.keys(listeners)) {
+                worker.removeEventListener(listener, listeners[listener]);
+            }
+        });
     }
 
     async store(stream) {
         await this.askPersistencePermission();
 
+        this.writeWorker.onerror = this.writeWorker.onmessageerror = (event) => {
+            console.error(event);
+        };
+
         const opfs = await navigator.storage.getDirectory();
         const filename = crypto.randomUUID();
 
-        const promise = new Promise((resolve, reject) => {
-            this.writeWorker.onmessage = async () => resolve(await opfs.getFileHandle(filename));
-            this.writeWorker.onerror = (event) => reject(event.error);
+        await this.send(this.writeWorker, { id: 0, filename });
 
-            this.writeWorker.postMessage({ id: 0, filename });
+        const reader = stream.getReader();
+        await reader.read().then(async function process({ done, value }) {
+            if (done) {
+                await this.send(this.writeWorker, { id: 2 });
+                return;
+            }
 
-            const reader = stream.getReader();
-            reader.read().then(async function process({ done, value }) {
-                if (done) {
-                    this.writeWorker.postMessage({ id: 2 });
-                    return;
-                }
+            await this.send(this.writeWorker, { id: 1, value });
+            return reader.read().then(process.bind(this));
+        }.bind(this));
 
-                this.writeWorker.postMessage({ id: 1, value });
-                reader.read().then(process.bind(this));
-            }.bind(this));
-        });
-
-        return await promise;
+        return opfs.getFileHandle(filename, { create: false });
     }
 
     async askPersistencePermission() {

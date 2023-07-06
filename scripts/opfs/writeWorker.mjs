@@ -15,8 +15,8 @@ async function handleWrite(event) {
 onmessage = async (event) => {
     if (event.data.id === 0) await handleCreate(event);
     if (event.data.id === 1) await handleWrite(event);
-    if (event.data.id === 2) {
-        await access.close();
-        postMessage({ id: 2 });
-    }
+    if (event.data.id === 2) await access.close();
+
+    // this is an ACKable packet, so send an ACK
+    if (event.data.hasOwnProperty("uid")) postMessage({ uid: event.data.uid });
 }
