@@ -1,4 +1,4 @@
-import Polyfills from "../polyfills.mjs";
+import * as Polyfills from "../polyfills.mjs";
 
 export class Opfs {
     constructor() {
