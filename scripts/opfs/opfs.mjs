@@ -38,7 +38,8 @@ export class Opfs {
     async askPersistencePermission() {
         if (this.askedPermission) return;
         this.askedPermission = true;
-        await navigator.storage.persist();
+        if (navigator.storage.persist)
+            await navigator.storage.persist();
     }
 
     close() {
