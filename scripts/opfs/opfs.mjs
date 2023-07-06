@@ -7,14 +7,13 @@ export class Opfs {
     async store(stream) {
         await this.askPersistencePermission();
 
-        const directory = await navigator.storage.getDirectory();
-
-        const handle = await directory.getFileHandle(crypto.randomUUID(), { create: true });
+        const opfs = await navigator.storage.getDirectory();
+        const filename = crypto.randomUUID();
 
         const promise = new Promise((resolve, reject) => {
-            this.writeWorker.onmessage = (event) => resolve(handle);
+            this.writeWorker.onmessage = async () => resolve(await opfs.getFileHandle(filename));
             this.writeWorker.onerror = (event) => reject(event.error);
-            this.writeWorker.postMessage({ handle, stream }, [ stream ]);
+            this.writeWorker.postMessage({ filename, stream }, [ stream ]);
         });
 
         return await promise;

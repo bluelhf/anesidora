@@ -1,5 +1,8 @@
 onmessage = async (event) => {
-    const { handle, stream } = event.data;
+    const { filename, stream } = event.data;
+    const opfs = await navigator.storage.getDirectory();
+    const handle = await opfs.getFileHandle(filename, { create: true });
+
     const access = await handle.createSyncAccessHandle();
 
     const reader = stream.getReader();
