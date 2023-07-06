@@ -1,5 +1,7 @@
 import * as Polyfills from "../polyfills.mjs";
 
+// todo: on supporting browsers use transferable streams instead,
+//       it looks like the current implementation leaks memory
 export class Opfs {
     constructor() {
         Polyfills.fillCrypto();
