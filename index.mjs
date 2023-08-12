@@ -1,10 +1,10 @@
-import { html, render, useState, useEffect } from 'https://esm.sh/htm/preact/standalone'
+import { html, render, useState, useEffect } from './libs/htm-preact.min.mjs';
 import { Header } from './components/header.mjs';
 import { FileUpload } from './components/fileUpload.mjs';
 import { FileDownload } from './components/fileDownload.mjs';
 import { ErrorWrapper } from './components/errorWrapper.mjs';
 
-import { checkCompatibility } from './scripts/compatibility.mjs';
+import { checkCompatibility } from './model/utils/compatibility.mjs';
 
 function App() {
     const [hash] = useState(window.location.hash);

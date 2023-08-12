@@ -1,4 +1,4 @@
-import { html } from 'https://esm.sh/htm/preact/standalone';
+import { html } from '../libs/htm-preact.min.mjs';
 import { ErrorDisplay } from "./errorDisplay.mjs";
 
 export function ErrorWrapper(props) {

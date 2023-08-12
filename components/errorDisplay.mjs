@@ -1,4 +1,4 @@
-import { html, useEffect } from 'https://esm.sh/htm/preact/standalone'
+import { html, useEffect } from '../libs/htm-preact.min.mjs';
 export function ErrorDisplay(props) {
     const { error } = props;
     useEffect(() => {
