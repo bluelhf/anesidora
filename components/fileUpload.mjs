@@ -1,8 +1,8 @@
 import { html, useState } from '../libs/htm-preact.min.mjs';
 
-import { openFile } from "../scripts/utils/picker.mjs";
-import { PITHOS, UploadState } from "../scripts/pithos.mjs";
-import { humanReadableSize, humanReadableTime } from "../scripts/utils/display.mjs";
+import { openFile } from "./utils/picker.mjs";
+import { PITHOS, UploadState } from "../model/pithos.mjs";
+import { humanReadableSize, humanReadableTime } from "./utils/display.mjs";
 
 export function FileUpload(props) {
     const { setError } = props;

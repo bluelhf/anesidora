@@ -1,6 +1,6 @@
 import { html, useState } from '../libs/htm-preact.min.mjs';
-import { DownloadState, PITHOS } from "../scripts/pithos.mjs";
-import { humanReadableSize, humanReadableTime } from "../scripts/utils/display.mjs";
+import { DownloadState, PITHOS } from "../model/pithos.mjs";
+import { humanReadableSize, humanReadableTime } from "./utils/display.mjs";
 
 export function FileDownload(props) {
     const { hash, setError } = props;
