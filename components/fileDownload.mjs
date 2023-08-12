@@ -15,7 +15,7 @@ export function FileDownload(props) {
     const beginFileDownload = async () => {
         try {
             try {
-                const { handle, metadata } = await PITHOS.download(uuid, secret, (event) => {
+                const { handle, metadata, close } = await PITHOS.download(uuid, secret, (event) => {
                     setState(event.state);
                     if (event.state === DownloadState.Downloading) {
                         setStart(event.start);
@@ -29,7 +29,10 @@ export function FileDownload(props) {
                 a.href = url;
                 a.download = metadata.name;
                 a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 40000);
+                setTimeout(async () => {
+                    URL.revokeObjectURL(url);
+                    await close();
+                }, 40000);
 
             } catch (error) {
                 if (error.name === "QuotaExceededError") {
