@@ -38,7 +38,8 @@ export class Pithos {
 
         start = Date.now();
         onProgress({ state: UploadState.RequestingPermission, start });
-        const { url, uuid } = await this.requestUploadPermission(prefix.length + file.size);
+        const { url: rawUrl, uuid } = await this.requestUploadPermission(prefix.length + file.size);
+        const url = new URL(rawUrl, API_ENDPOINT);
 
         start = Date.now();
 
@@ -65,7 +66,8 @@ export class Pithos {
 
     async download(uuid, secret, onProgress) {
         onProgress({ state: DownloadState.RequestingPermission });
-        const { url } = await this.requestDownloadPermission(uuid);
+        const { url: rawUrl } = await this.requestDownloadPermission(uuid);
+        const url = new URL(rawUrl, API_ENDPOINT);
 
         const response = await fetch(url);
         const contentLength = parseInt(response.headers.get("Content-Length"));
