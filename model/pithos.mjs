@@ -49,6 +49,7 @@ export class Pithos {
 
         const promise = new Promise((resolve, reject) => {
             xhr.addEventListener("load", () => {
+                this.opfs.delete(handle);
                 onProgress({ state: UploadState.Done, secret, uuid });
                 resolve({ secret, uuid });
             });
@@ -81,7 +82,7 @@ export class Pithos {
 
         const handle = await this.opfs.store(decrypted);
         onProgress({ state: DownloadState.Done, handle, metadata: metadataParser.metadata });
-        return { handle, metadata: metadataParser.metadata };
+        return { handle, metadata: metadataParser.metadata, close: () => this.opfs.delete(handle) };
     }
 
     async requestUploadPermission(size) {
