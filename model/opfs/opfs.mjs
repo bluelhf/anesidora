@@ -14,8 +14,12 @@ await clearOpfs();
 export async function clearOpfs() {
     const opfs = await navigator.storage.getDirectory();
     for await (const key of opfs.keys()) {
-        console.log("Removed stale entry " + key);
-        await opfs.removeEntry(key, { recursive: true });
+        try {
+            await opfs.removeEntry(key, { recursive: true });
+            console.log("Removed stale entry " + key);
+        } catch (error) {
+            console.warn("Failed to remove stale entry " + key);
+        }
     }
 }
 
