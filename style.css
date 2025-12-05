@@ -16,6 +16,12 @@ html {
 }
 
 header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header hgroup {
     font-size: xx-large;
     margin-top: 1rem;
     text-align: center;
@@ -24,6 +30,12 @@ header {
 
 header * {
     margin-block: 0;
+}
+
+#error-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .widget {
@@ -78,4 +90,9 @@ header * {
     white-space: nowrap;
 
     font-family: monospace;
+}
+
+#app details {
+    position: absolute;
+    margin-top: 1rem;
 }

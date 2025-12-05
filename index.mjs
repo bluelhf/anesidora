@@ -22,6 +22,22 @@ function App() {
                         : html`<${FileUpload} setError=${setError}/>`
                 }
             </ErrorWrapper>
+            <details>
+                <summary>Update on 2025-12-05: Encryption works better now!</summary>
+                <p>
+                    <a href="https://antti.codes/">Antti</a> recently identified a bug in the
+                    encryption implementation. The initialisation vector (IV) used for AES-CTR
+                    encryption was completely ignored, which weakened the security of the encryption.
+                </p><p>
+                    While this does not matter for the security of files uploaded to Anesidora (since a
+                    new random key is generated for each file), I decided to fix it anyway. Now, the IV
+                    is used properly to initialise the counter, and the counter is being incremented
+                    properly (little-endian in the rightmost half).
+                </p><p>
+                    Files generated with the new Anesidora version will have one extra byte in the secret
+                    to specify the encryption scheme version number, but old files will still work as before.
+                </p>
+            </details>
         </div>
     `;
 }
