@@ -14,7 +14,7 @@ import { CHUNK_SIZE } from "./config.mjs";
 export async function encrypt(stream) {
     const key = await generateKey();
     const iv = crypto.getRandomValues(new Uint8Array(16));
-    const version = 1;
+    const version = 2;
     const versionArray = new Uint8Array([version]);
 
     const exported = (await exportKey(key));
@@ -81,6 +81,7 @@ async function ncryptStream(key, iv, method, version = 0) {
     switch (version) {
         case 0: return ncryptStreamV0(key, iv, method);
         case 1: return ncryptStreamV1(key, iv, method);
+        case 2: return ncryptStreamV2(key, iv, method);
         default: throw new Error("Unsupported encryption version: " + version);
     }
 }
@@ -139,3 +140,29 @@ function decryptStream(key, iv, version) {
     return ncryptStream(key, iv, "decrypt", version);
 }
 //endregion
+
+function addToCounter(counter, n, leftmostByte, rightmostByte) {
+    let carry = n;
+    for (let i = rightmostByte; i >= leftmostByte && carry > 0; i--) {
+        const sum = counter[i] + (carry % 256);
+        counter[i] = sum % 256;
+        carry = Math.floor(carry / 256) + (sum > 255 ? 1 : 0);
+    }
+}
+
+async function ncryptStreamV2(key, iv, method) {
+    const counter = new Uint8Array(16);
+    counter.set(iv.slice(0, 8), 0);
+    const algorithm = {name: "AES-CTR", counter, length: 64};
+    return new TransformStream({
+        async transform(chunk, controller) {
+            if (!(chunk instanceof ArrayBuffer) && !(ArrayBuffer.isView(chunk))) {
+                throw new Error("Encryption is only supported for ArrayBuffers or their views, but got " + chunk + " instead.");
+            }
+
+            const encrypted = await crypto.subtle[method](algorithm, key, chunk);
+            controller.enqueue(new Uint8Array(encrypted));
+            addToCounter(counter, Math.ceil(chunk.byteLength / 16), 8, 15);
+        }
+    });
+}
