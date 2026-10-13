@@ -107,7 +107,7 @@ export class Opfs {
 
     async delete(handle) {
         const opfs = await navigator.storage.getDirectory();
-        await opfs.removeEntry((await handle.getFile()).name);
+        await opfs.removeEntry(handle.name);
     }
 
     handleError(event) {
