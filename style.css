@@ -73,13 +73,6 @@ header * {
     max-width: 100%;
 }
 
-#error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
 .transfer {
     width: 100%;
 }
@@ -204,16 +197,15 @@ button.primary:focus-visible {
     max-width: min(40rem, 100%);
     margin-top: 1rem;
 }
+
 button:disabled {
     opacity: 0.6;
     cursor: progress;
 }
 
 #error ul {
-    margin-block: 0.75rem 0;
-    padding-inline-start: 1.25em;
-}
-
-#error ul:last-child {
-    margin-bottom: 0;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75em;
 }

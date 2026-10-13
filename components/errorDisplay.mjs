@@ -7,14 +7,22 @@ export function ErrorDisplay(props) {
         if (error.cause) console.error(error.cause);
     }, [error]);
 
+    const { action, recoverable, userReport } = error;
+    const canRetry = recoverable && onRetry;
+
     return html`
         <div class="widget" id="error" role="alert">
-            <div>
-                <strong>${error.userReport?.title}</strong>
+            <div class="result">
+                <p><strong>${userReport?.title}</strong></p>
                 <ul>
-                    ${error.userReport?.userSuggestions?.map((suggestion) => html`<li>${suggestion}</li>`)}
+                    ${userReport?.userSuggestions?.map((suggestion) => html`<li>${suggestion}</li>`)}
                 </ul>
-                ${error.recoverable && onRetry ? html`<button id="retry" class="primary" onclick=${onRetry}>Try again</button>` : null}
+                ${action || canRetry ? html`
+                    <div class="actions">
+                        ${action ? html`<button id="error-action" class="primary" onclick=${action.run}>${action.label}</button>` : null}
+                        ${canRetry ? html`<button id="retry" class=${action ? "wide" : "primary"} onclick=${onRetry}>Try again</button>` : null}
+                    </div>
+                ` : null}
             </div>
         </div>
     `;

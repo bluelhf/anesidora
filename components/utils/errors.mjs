@@ -1,4 +1,8 @@
+import { navigateToUpload } from "./route.mjs";
+
 // Shape: { operatorReport, cause, userReport: { title, userSuggestions }, recoverable, action }
+
+const uploadInstead = { label: "Upload one instead", run: navigateToUpload };
 
 export function uploadFailed(cause) {
     return {
@@ -32,11 +36,11 @@ export function downloadFailed(cause) {
 export function fileNotFound() {
     return {
         recoverable: false,
+        action: uploadInstead,
         userReport: {
-            title: "This file is no longer available.",
+            title: "This file could not be found.",
             userSuggestions: [
-                "It may have expired.",
-                "Ask for a new link.",
+                "It may have been deleted."
             ]
         }
     };
@@ -61,6 +65,7 @@ export function invalidLink() {
     return {
         operatorReport: "The location hash is not of the form #<uuid>;<secret>",
         recoverable: false,
+        action: uploadInstead,
         userReport: {
             title: "This link is not valid.",
             userSuggestions: [
