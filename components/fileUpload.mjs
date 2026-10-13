@@ -4,6 +4,7 @@ import { openFile } from "./utils/picker.mjs";
 import { PITHOS, UploadState } from "../model/pithos.mjs";
 import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
+import { uploadFailed } from "./utils/errors.mjs";
 
 export function FileUpload(props) {
     const { setError } = props;
@@ -52,16 +53,7 @@ export function FileUpload(props) {
             }
 
         } catch (error) {
-            setError({
-                operatorReport: "Uncaught exception while uploading file",
-                cause: error,
-                userReport: {
-                    title: "Uploading the file failed.",
-                    userSuggestions: [
-                        "Try again later.",
-                    ]
-                }
-            });
+            setError(uploadFailed(error));
         }
     }
 

@@ -2,6 +2,7 @@ import { html, useState } from '../libs/htm-preact.min.mjs';
 import { DownloadState, PITHOS } from "../model/pithos.mjs";
 import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
+import { downloadFailed, quotaExceeded } from "./utils/errors.mjs";
 
 export function FileDownload(props) {
     const { hash, setError } = props;
@@ -15,53 +16,26 @@ export function FileDownload(props) {
 
     const beginFileDownload = async () => {
         try {
-            try {
-                const { handle, metadata, close } = await PITHOS.download(uuid, secret, (event) => {
-                    setState(event.state);
-                    if (event.state === DownloadState.Downloading) {
-                        setStart(event.start);
-                        setProgress(event.progress);
-                        setTotal(event.total);
-                    }
-                });
-
-                const url = URL.createObjectURL(await handle.getFile());
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = metadata.name;
-                a.click();
-                setTimeout(async () => {
-                    URL.revokeObjectURL(url);
-                    await close();
-                }, 40000);
-
-            } catch (error) {
-                if (error.name === "QuotaExceededError") {
-                    setError({
-                        operatorReport: "Origin-private file system quota exceeded",
-                        cause: error,
-                        userReport: {
-                            title: "The file is too large for this browser.",
-                            userSuggestions: [
-                                "Try with a modern version of Chrome.",
-                                "Try again with a smaller file.",
-                            ]
-                        }
-                    });
-                } else throw error;
-            }
-
-        } catch (error) {
-            setError({
-                operatorReport: "Uncaught exception while downloading file",
-                cause: error,
-                userReport: {
-                    title: "Downloading the file failed.",
-                    userSuggestions: [
-                        "Try again later.",
-                    ]
+            const { handle, metadata, close } = await PITHOS.download(uuid, secret, (event) => {
+                setState(event.state);
+                if (event.state === DownloadState.Downloading) {
+                    setStart(event.start);
+                    setProgress(event.progress);
+                    setTotal(event.total);
                 }
             });
+
+            const url = URL.createObjectURL(await handle.getFile());
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = metadata.name;
+            a.click();
+            setTimeout(async () => {
+                URL.revokeObjectURL(url);
+                await close();
+            }, 40000);
+        } catch (error) {
+            setError(error.name === "QuotaExceededError" ? quotaExceeded(error) : downloadFailed(error));
         }
     };
 
