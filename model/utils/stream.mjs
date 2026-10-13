@@ -86,22 +86,44 @@ export class ProgressStream extends TransformStream {
 }
 
 export function buildStream(...objects) {
+    let index = 0;
+    let reader = undefined;
+    const encoder = new TextEncoder();
     return new ReadableStream({
-        async start(controller) {
-            for (const obj of objects) {
-                if (obj instanceof ArrayBuffer) {
-                    controller.enqueue(new Uint8Array(obj));
-                } else if (obj instanceof ReadableStream) {
-                    await obj.pipeTo(new WritableStream({
-                        write(chunk) {
-                            controller.enqueue(chunk);
-                        }
-                    }));
-                } else if (obj?.constructor === String) {
-                    controller.enqueue(new TextEncoder().encode(obj));
-                }
+        async pull(controller) {
+            if (reader) {
+                const { done, value } = await reader.read();
+                if (!done) {
+                    controller.enqueue(value);
+                    return;
+                } else reader = undefined;
             }
-            controller.close();
+
+            if (index >= objects.length) {
+                controller.close();
+                return;
+            }
+
+            const current = objects?.[index++];
+            if (current instanceof ReadableStream) {
+                reader = current.getReader();
+                return this.pull(controller);
+            } else {
+                if (current instanceof ArrayBuffer) controller.enqueue(new Uint8Array(current));
+                else if (ArrayBuffer.isView(current)) controller.enqueue(new Uint8Array(current.buffer, current.byteOffset, current.byteLength));
+                else if (typeof current === "string") controller.enqueue(encoder.encode(current));
+                else throw new TypeError(`Unsupported chunk type ${current.constructor.name}`);
+            }
+        },
+
+        async cancel(reason) {
+            await Promise.allSettled([
+                reader?.cancel(reason),
+                ...objects
+                    .slice(index)
+                    .filter(thing => thing instanceof ReadableStream && !thing.locked)
+                    .map(stream => stream.cancel(reason))
+            ])
         }
     });
 }
