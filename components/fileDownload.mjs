@@ -31,12 +31,15 @@ export function FileDownload(props) {
 
     const { phase, progress, total, start } = transfer;
 
+    if (phase === Phase.Ready) {
+        return html`<button class="widget" onclick=${beginFileDownload}>Download file</button>`;
+    }
+
     return html`
         <div class="widget">
             <div>
                 ${(() => {
                     switch (phase) {
-                        case Phase.Ready:    return html`<button class="widget" onclick=${beginFileDownload}> Download file</button>`;
                         case DownloadState.RequestingPermission: return html`<p>Requesting download permission...</p>`;
                         case DownloadState.Downloading:  return html`
                     <${TransferProgress} label=${capitalise(phase)} progress=${progress} total=${total} start=${start} />`;
