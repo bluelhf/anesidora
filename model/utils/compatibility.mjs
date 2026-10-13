@@ -16,6 +16,7 @@ export function checkCompatibility() {
         return {
             "compatible": false,
             "error": {
+                "recoverable": false,
                 "userReport": {
                     "title": "It's not possible to encrypt your files at the moment.",
                     "userSuggestions": [

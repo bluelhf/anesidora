@@ -10,15 +10,16 @@ import { useHash } from './components/hooks/useHash.mjs';
 import { Route, parseHash } from './components/utils/route.mjs';
 import { invalidLink } from './components/utils/errors.mjs';
 
+const compatibilityError = checkCompatibility()?.error ?? null;
+
 function App() {
     const hash = useHash();
     const route = parseHash(hash);
 
-    const compatibilityError = checkCompatibility()?.error ?? null;
-
     // Failures belong to the link they happened on.
     const [ failure, setFailure ] = useState(null);
     const setError = (error) => setFailure(error && { hash, error });
+    const clearError = () => setFailure(null);
 
     const linkError = useMemo(() => route.name === Route.Invalid ? invalidLink() : null, [route.name]);
 
@@ -29,7 +30,7 @@ function App() {
     return html`
         <div id="app">
             <${Header} />
-            <${ErrorWrapper} error=${error}>
+            <${ErrorWrapper} error=${error} onRetry=${clearError}>
                 ${route.name === Route.Download
                         ? html`<${FileDownload} key=${hash} setError=${setError} uuid=${route.uuid} secret=${route.secret} />`
                         : html`<${FileUpload} setError=${setError}/>`

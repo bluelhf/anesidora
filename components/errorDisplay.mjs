@@ -1,7 +1,7 @@
 import { html, useEffect } from '../libs/htm-preact.min.mjs';
 
 export function ErrorDisplay(props) {
-    const { error } = props;
+    const { error, onRetry } = props;
     useEffect(() => {
         if (error.operatorReport) console.error(error.operatorReport);
         if (error.cause) console.error(error.cause);
@@ -13,7 +13,8 @@ export function ErrorDisplay(props) {
                 <strong>${error.userReport?.title}</strong>
                 <ul>
                     ${error.userReport?.userSuggestions?.map((suggestion) => html`<li>${suggestion}</li>`)}
-                </ul>    
+                </ul>
+                ${error.recoverable && onRetry ? html`<button id="retry" onclick=${onRetry}>Try again</button>` : null}
             </div>
         </div>
     `;
