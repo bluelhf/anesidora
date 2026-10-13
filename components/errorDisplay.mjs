@@ -1,4 +1,5 @@
 import { html, useEffect } from '../libs/htm-preact.min.mjs';
+
 export function ErrorDisplay(props) {
     const { error } = props;
     useEffect(() => {

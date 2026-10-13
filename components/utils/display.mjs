@@ -1,12 +1,14 @@
 export function humanReadableSize(amount, decimals = 2) {
     const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
-    const exponent = Math.min(Math.floor(Math.log2(amount) / 10), units.length - 1);
+    if (!Number.isFinite(amount) || amount < 1) amount = 0;
+    const exponent = amount === 0 ? 0 : Math.min(Math.floor(Math.log2(amount) / 10), units.length - 1);
     const unit = units[exponent];
     const size = (amount / 2 ** (10 * exponent)).toFixed(exponent > 0 ? decimals : 0);
     return `${size} ${unit}`;
 }
 
 export function humanReadableTime(number, precision = 3) {
+    if (!Number.isFinite(number) || number < 0) number = 0;
     const hours = Math.floor(number / 3600);
     const minutes = Math.floor(number / 60) % 60;
     const seconds = Math.floor(number) % 60;
