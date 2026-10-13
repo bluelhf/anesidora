@@ -36,13 +36,11 @@ export class ChunkingStream extends TransformStream {
                     throw new Error("ChunkingStream only supports Uint8Array chunks");
                 }
 
-                // If the chunk doesn't fit in the buffer, we need to split it up.
                 if (this.position + chunk.byteLength >= chunkSize) {
                     let fits = chunkSize - this.position;
                     this.buffer.set(chunk.slice(0, fits), this.position);
                     controller.enqueue(this.buffer);
 
-                    // Recursively call transform with the remaining chunk.
                     this.buffer = new Uint8Array(chunkSize);
                     this.position = 0;
 
@@ -53,7 +51,6 @@ export class ChunkingStream extends TransformStream {
                 }
             },
             flush(controller) {
-                // Make sure we don't leave any data behind.
                 controller.enqueue(this.buffer.slice(0, this.position));
                 this.buffer = new Uint8Array(0);
                 this.position = 0;

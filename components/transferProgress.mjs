@@ -15,8 +15,6 @@ export function TransferProgress(props) {
     const now = useNow();
     const { elapsed, speed, remaining, fraction } = transferStats({ progress, total, start, now });
 
-    // Values only break between spans, never inside "44 MiB/s".
-    // Separators are interpolated because htm trims whitespace next to newlines.
     return html`
         <div class="transfer">
             <p>${label}... ${(fraction * 100).toFixed(2)}% complete</p>

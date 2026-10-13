@@ -17,7 +17,6 @@ export async function openFile() {
             input.type = "file";
             input.style.display = "none";
 
-            // Stay attached until done: some browsers drop events for a detached input.
             const finish = (file) => {
                 input.remove();
                 resolve(file ? { getFile: async () => file } : undefined);

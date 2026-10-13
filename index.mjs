@@ -16,7 +16,6 @@ function App() {
     const hash = useHash();
     const route = parseHash(hash);
 
-    // Failures belong to the link they happened on.
     const [ failure, setFailure ] = useState(null);
     const setError = (error) => setFailure(error && { hash, error });
     const clearError = () => setFailure(null);

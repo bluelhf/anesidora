@@ -19,8 +19,6 @@ export function useSavedFile(setError) {
         if (!saved.current || saving) return;
         setSaving(true);
 
-        // Let the disabled button paint first: handing a large file to the browser can block the page.
-        await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
         try {
             await saveFromHandle(saved.current.handle, saved.current.name);
         } catch (error) {

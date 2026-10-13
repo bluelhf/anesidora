@@ -15,7 +15,6 @@ export function UploadResult(props) {
         return () => clearTimeout(id);
     }, [copied]);
 
-    // Clipboard refused: show the link so it can be copied by hand.
     const copyLink = async () => {
         try {
             await navigator.clipboard.writeText(link);

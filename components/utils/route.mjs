@@ -1,4 +1,3 @@
-// The hash decides the page and is never sent to the server, which keeps the secret private.
 export const Route = {
     Upload: "upload",
     Download: "download",
@@ -23,6 +22,6 @@ export function buildShareLink(href, uuid, secret) {
 
 export function navigateToUpload() {
     history.pushState(null, "", location.pathname + location.search);
-    // pushState does not fire hashchange, which useHash listens for.
+    // send event manually for the useHash hook
     window.dispatchEvent(new HashChangeEvent("hashchange"));
 }
