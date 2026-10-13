@@ -28,6 +28,20 @@ export function downloadFailed(cause) {
     };
 }
 
+// Expected, so there is nothing for the operator to log.
+export function fileNotFound() {
+    return {
+        recoverable: false,
+        userReport: {
+            title: "This file is no longer available.",
+            userSuggestions: [
+                "It may have expired.",
+                "Ask for a new link.",
+            ]
+        }
+    };
+}
+
 export function quotaExceeded(cause) {
     return {
         operatorReport: "Origin-private file system quota exceeded",
@@ -54,4 +68,10 @@ export function invalidLink() {
             ]
         }
     };
+}
+
+export function classifyDownloadError(error) {
+    if (error.name === "QuotaExceededError") return quotaExceeded(error);
+    if (error.name === "HttpError" && (error.status === 404 || error.status === 410)) return fileNotFound();
+    return downloadFailed(error);
 }

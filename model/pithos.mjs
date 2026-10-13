@@ -16,6 +16,19 @@ export const DownloadState = {
     Done: "done",
 }
 
+export class HttpError extends Error {
+    constructor(response) {
+        super(`${response.status} ${response.statusText} for ${response.url}`);
+        this.name = "HttpError";
+        this.status = response.status;
+    }
+}
+
+function ensureOk(response) {
+    if (!response.ok) throw new HttpError(response);
+    return response;
+}
+
 export class Pithos {
     constructor(endpoint) {
         this.endpoint = endpoint;
@@ -69,7 +82,7 @@ export class Pithos {
         const { url: rawUrl } = await this.requestDownloadPermission(uuid);
         const url = new URL(rawUrl, this.endpoint);
 
-        const response = await fetch(url);
+        const response = ensureOk(await fetch(url));
         const contentLength = parseInt(response.headers.get("Content-Length"));
 
         const metadataParser = new MetadataParser();
@@ -96,7 +109,7 @@ export class Pithos {
     }
 
     async requestDownloadPermission(uuid) {
-        const response = await fetch(this.endpoint + "/download/" + uuid);
+        const response = ensureOk(await fetch(this.endpoint + "/download/" + uuid));
         return await response.json();
     }
 }

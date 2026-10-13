@@ -2,7 +2,7 @@ import { html } from '../libs/htm-preact.min.mjs';
 import { DownloadState, PITHOS } from "../model/pithos.mjs";
 import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
-import { downloadFailed, quotaExceeded } from "./utils/errors.mjs";
+import { classifyDownloadError } from "./utils/errors.mjs";
 import { DownloadResult } from "./downloadResult.mjs";
 import { Phase } from "./state/transfer.mjs";
 import { useTransfer } from "./hooks/useTransfer.mjs";
@@ -21,7 +21,7 @@ export function FileDownload(props) {
 
             await keep({ handle, name: metadata.name, close });
         } catch (error) {
-            setError(error.name === "QuotaExceededError" ? quotaExceeded(error) : downloadFailed(error));
+            setError(classifyDownloadError(error));
         }
     };
 
