@@ -7,6 +7,7 @@ export const UploadState = {
     Encrypting: "encrypting",
     RequestingPermission: "requesting_permission",
     Uploading: "uploading",
+    Finishing: "finishing",
     Done: "done",
 }
 
@@ -58,6 +59,7 @@ export class Pithos {
 
         const xhr = new XMLHttpRequest();
         xhr.upload.addEventListener("progress", (event) => {
+            if (event.loaded >= event.total) return onProgress({ state: UploadState.Finishing });
             onProgress({ state: UploadState.Uploading, progress: event.loaded, total: event.total, start });
         });
 

@@ -52,6 +52,7 @@ export function FileUpload(props) {
                         case UploadState.Encrypting:
                         case UploadState.Uploading:  return html`
                     <${TransferProgress} label=${capitalise(phase)} progress=${progress} total=${total} start=${start} />`;
+                        case UploadState.Finishing: return html`<p>Finishing upload...</p>`;
                         case UploadState.Done: return html`<${UploadResult} link=${link} onUploadAnother=${uploadAnother} />`;
                     }
                 })()}
