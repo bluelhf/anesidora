@@ -1,12 +1,6 @@
 import * as Polyfills from "../polyfills.mjs";
-import { isTransferable } from "../utils/compatibility.mjs";
-
-export const Messages = {
-    Create: 0,
-    WriteChunk: 1,
-    WriteStream: 2,
-    Close: 3,
-}
+import {isTransferable} from "../utils/compatibility.mjs";
+import {Messages} from "./messages.mjs";
 
 if (typeof window !== 'undefined') window.addEventListener("beforeunload", clearOpfs);
 await clearOpfs();

@@ -1,4 +1,4 @@
-import { Messages } from "./opfs.mjs";
+import {Messages} from "./messages.mjs";
 
 let accessMap = new Map();
 
@@ -29,7 +29,14 @@ onmessage = async (event) => {
     if (event.data.id === Messages.Create) await handleCreate(event);
     if (event.data.id === Messages.WriteChunk) await handleChunk(event);
     if (event.data.id === Messages.WriteStream) await handleStream(event);
-    if (event.data.id === Messages.Close) await accessMap.get(event.data.filename).close();
+    if (event.data.id === Messages.Close) {
+        const name = event.data.filename;
+        const access = accessMap.get(name);
+
+        access.flush();
+        access.close();
+        accessMap.delete(name);
+    }
 
     // this is an ACKable packet, so send an ACK
     if (event.data.hasOwnProperty("uid")) postMessage({ uid: event.data.uid });
