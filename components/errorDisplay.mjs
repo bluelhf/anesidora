@@ -14,7 +14,7 @@ export function ErrorDisplay(props) {
                 <ul>
                     ${error.userReport?.userSuggestions?.map((suggestion) => html`<li>${suggestion}</li>`)}
                 </ul>
-                ${error.recoverable && onRetry ? html`<button id="retry" onclick=${onRetry}>Try again</button>` : null}
+                ${error.recoverable && onRetry ? html`<button id="retry" class="primary" onclick=${onRetry}>Try again</button>` : null}
             </div>
         </div>
     `;

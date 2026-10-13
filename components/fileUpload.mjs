@@ -6,20 +6,15 @@ import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
 import { uploadFailed } from "./utils/errors.mjs";
 import { buildShareLink } from "./utils/route.mjs";
+import { UploadResult } from "./uploadResult.mjs";
 import { Phase } from "./state/transfer.mjs";
 import { useTransfer } from "./hooks/useTransfer.mjs";
 
 export function FileUpload(props) {
     const { setError } = props;
 
-    const { transfer, report } = useTransfer();
+    const { transfer, report, reset } = useTransfer();
     const [ link, setLink ] = useState(null);
-    const [ copied, setCopied ] = useState(false);
-
-    const copyLink = async () => {
-        await navigator.clipboard.writeText(link);
-        setCopied(true);
-    }
 
     const beginFileUpload = async () => {
         try {
@@ -37,6 +32,11 @@ export function FileUpload(props) {
         }
     }
 
+    const uploadAnother = () => {
+        reset();
+        setLink(null);
+    };
+
     const { phase, progress, total, start } = transfer;
 
     if (phase === Phase.Ready) {
@@ -52,14 +52,7 @@ export function FileUpload(props) {
                         case UploadState.Encrypting:
                         case UploadState.Uploading:  return html`
                     <${TransferProgress} label=${capitalise(phase)} progress=${progress} total=${total} start=${start} />`;
-                        case UploadState.Done: return html`
-                    Finished!
-                    <div id="link-container">
-                        Link: 
-                        <span id="link">${link}</span>
-                        <button id="copy" onclick=${copyLink}>${copied ? "Copied!" : "Copy"}</button>
-                    </div>
-                `;
+                        case UploadState.Done: return html`<${UploadResult} link=${link} onUploadAnother=${uploadAnother} />`;
                     }
                 })()}
             </div>

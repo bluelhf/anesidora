@@ -120,32 +120,45 @@ progress::-moz-progress-bar {
     background-color: azure;
 }
 
-#link-container {
-    margin-top: 1rem;
+.result {
+    width: 100%;
+    text-align: center;
+}
 
+.result p {
+    margin-block: 0;
+}
+
+.actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 0.5rem;
+    margin-top: 1rem;
 
-    font-size: large;
-    width: 100%;
+    font-size: 0.75em;
+}
+
+.actions button {
+    flex: 1 1 0;
+}
+
+/* The main action, and any action that does not belong next to the others, get a row of their own. */
+.actions .primary,
+.actions .wide {
+    flex-basis: 100%;
 }
 
 #link {
-    flex: 1 1 12rem;
-    min-width: 0;
-
-    background-color: #FFFFFF05;
-    border-radius: 0.5rem;
-
+    margin-top: 0.75rem;
     padding: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: #FFFFFF14;
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 0.6em;
+    text-align: left;
 
-    font-family: monospace;
+    /* A URL has no spaces to break at. */
+    overflow-wrap: anywhere;
 
     /* One tap selects the whole link. */
     user-select: all;
@@ -172,6 +185,19 @@ button:focus-visible {
 button:focus-visible {
     outline: 2px solid azure;
     outline-offset: 2px;
+}
+
+/* The one action a screen is asking for. */
+button.primary {
+    background-color: azure;
+    border-color: azure;
+    color: black;
+    font-weight: bold;
+}
+
+button.primary:hover,
+button.primary:focus-visible {
+    background-color: white;
 }
 
 #app details {
