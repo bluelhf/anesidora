@@ -1,6 +1,7 @@
 import { html, useState } from '../libs/htm-preact.min.mjs';
 import { DownloadState, PITHOS } from "../model/pithos.mjs";
-import { humanReadableSize, humanReadableTime } from "./utils/display.mjs";
+import { TransferProgress } from "./transferProgress.mjs";
+import { capitalise } from "./utils/display.mjs";
 
 export function FileDownload(props) {
     const { hash, setError } = props;
@@ -72,14 +73,7 @@ export function FileDownload(props) {
                         case "ready":    return html`<button class="widget" onclick=${beginFileDownload}> Download file</button>`;
                         case DownloadState.RequestingPermission: return html`<p>Requesting download permission...</p>`;
                         case DownloadState.Downloading:  return html`
-                    <p>${state.charAt(0).toUpperCase() + state.slice(1)}... ${(progress / total * 100).toFixed(2)}% complete</p>
-                    <p>${humanReadableSize(progress)} / ${humanReadableSize(total)} @ ${humanReadableSize(progress / (Date.now() - start) * 1000, 0)}/s</p>
-                    <p>${(() => {
-                            const elapsed = (Date.now() - start) / 1000.0;
-                            const remaining = (total - progress) / (progress / elapsed);
-                            const totalTime = elapsed + remaining;
-                            return `${humanReadableTime(elapsed)}/${humanReadableTime(totalTime)}; -${humanReadableTime(remaining)}`;
-                        })()}</p>`;
+                    <${TransferProgress} label=${capitalise(state)} progress=${progress} total=${total} start=${start} />`;
                         case DownloadState.Done:         return html`<p>Downloaded.</p>`;
                     }
                 })()}

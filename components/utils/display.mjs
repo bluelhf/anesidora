@@ -44,3 +44,7 @@ export function humanReadableDuration(number) {
 
     return parts.length === 0 ? "a little bit" : parts.join(", ");
 }
+
+export function capitalise(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
