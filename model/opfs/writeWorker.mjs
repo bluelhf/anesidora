@@ -14,15 +14,19 @@ async function handleChunk(event) {
 }
 
 async function handleStream(event) {
-    const reader = event.data.stream.getReader();
-    const access = accessMap.get(event.data.filename);
-    reader.read().then(async function process({value, done}) {
-        if (done) return;
-        access.write(value);
-        reader.read().then(process);
-    });
-
-    await reader.closed;
+    const { filename, stream } = event.data;
+    const reader = stream.getReader();
+    const access = accessMap.get(filename);
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            access.write(value);
+        }
+    } finally {
+        access.close();
+        accessMap.delete(filename);
+    }
 }
 
 onmessage = async (event) => {
