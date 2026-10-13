@@ -70,21 +70,6 @@ export class Opfs {
         return await ackWait;
     }
 
-    process(reader, filename) {
-        const process0 = async (event) => {
-            if (event.done) {
-                await this.send(this.writeWorker, { id: Messages.Close, filename });
-                return;
-            }
-
-            const packet = { id: Messages.WriteChunk, value: event.value, filename };
-            await this.send(this.writeWorker, packet);
-            reader.read().then(process0);
-        };
-
-        return process0;
-    }
-
     async store(stream) {
         await this.askPersistencePermission();
 
@@ -98,8 +83,13 @@ export class Opfs {
             await this.send(this.writeWorker, {id: Messages.WriteStream, stream, filename}, [stream]);
         } else {
             const reader = stream.getReader();
-            reader.read().then(this.process(reader, filename))
-            await reader.closed;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                await this.send(this.writeWorker, { id: Messages.WriteChunk, value, filename });
+            }
+
+            await this.send(this.writeWorker, { id: Messages.Close, filename });
         }
 
         return opfs.getFileHandle(filename, { create: false });
