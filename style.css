@@ -61,7 +61,7 @@ header * {
 
     color: white;
     font-size: clamp(1rem, 4vw + 0.25rem, 1.5rem);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 
     display: flex;
     flex-direction: column;
@@ -78,6 +78,46 @@ header * {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.transfer {
+    width: 100%;
+}
+
+.transfer .detail {
+    font-size: 0.75em;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+progress {
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 100%;
+    height: 0.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    overflow: hidden;
+
+    /* Track and fill are set explicitly: the default track is light, which
+       made a dark-on-dark page show a white bar on a white track. */
+    background-color: #FFFFFF26;
+    color: azure;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #FFFFFF26;
+}
+
+progress::-webkit-progress-value {
+    background-color: azure;
+}
+
+progress::-moz-progress-bar {
+    background-color: azure;
 }
 
 #link-container {

@@ -15,9 +15,18 @@ export function TransferProgress(props) {
     const now = useNow();
     const { elapsed, speed, remaining, fraction } = transferStats({ progress, total, start, now });
 
+    // Values only break between spans, never inside "44 MiB/s".
+    // Separators are interpolated because htm trims whitespace next to newlines.
     return html`
-        <p>${label}... ${(fraction * 100).toFixed(2)}% complete</p>
-        <p>${humanReadableSize(progress)} / ${humanReadableSize(total)} @ ${humanReadableSize(speed, 0)}/s</p>
-        <p>${humanReadableTime(elapsed)}/${humanReadableTime(elapsed + remaining)}; -${humanReadableTime(remaining)}</p>
+        <div class="transfer">
+            <p>${label}... ${(fraction * 100).toFixed(2)}% complete</p>
+            <progress aria-label=${label} max="1" value=${fraction} />
+            <p class="detail">
+                <span class="nowrap">${humanReadableSize(progress)}</span>${" / "}<span class="nowrap">${humanReadableSize(total)}</span>${" @ "}<span class="nowrap">${humanReadableSize(speed, 0)}/s</span>
+            </p>
+            <p class="detail">
+                <span class="nowrap">${humanReadableTime(elapsed)}/${humanReadableTime(elapsed + remaining)};</span>${" "}<span class="nowrap">-${humanReadableTime(remaining)}</span>
+            </p>
+        </div>
     `;
 }

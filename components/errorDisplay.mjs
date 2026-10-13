@@ -8,7 +8,7 @@ export function ErrorDisplay(props) {
     }, [error]);
 
     return html`
-        <div class="widget" id="error">
+        <div class="widget" id="error" role="alert">
             <div>
                 <strong>${error.userReport?.title}</strong>
                 <ul>

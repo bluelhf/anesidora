@@ -45,6 +45,7 @@ export function FileUpload(props) {
                 ${(() => {
                     switch (phase) {
                         case Phase.Ready:    return html`<button class="widget" onclick=${beginFileUpload}>Upload file</button>`;
+                        case UploadState.RequestingPermission: return html`<p>Requesting upload permission...</p>`;
                         case UploadState.Encrypting:
                         case UploadState.Uploading:  return html`
                     <${TransferProgress} label=${capitalise(phase)} progress=${progress} total=${total} start=${start} />`;
