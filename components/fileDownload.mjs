@@ -7,8 +7,7 @@ import { Phase } from "./state/transfer.mjs";
 import { useTransfer } from "./hooks/useTransfer.mjs";
 
 export function FileDownload(props) {
-    const { hash, setError } = props;
-    const [ uuid, secret ] = hash.substring(1).split(";");
+    const { uuid, secret, setError } = props;
 
     const { transfer, report } = useTransfer();
 

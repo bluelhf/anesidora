@@ -1,27 +1,39 @@
-import { html, render, useState, useEffect } from './libs/htm-preact.min.mjs';
+import { html, render, useMemo, useState } from './libs/htm-preact.min.mjs';
 import { Header } from './components/header.mjs';
 import { FileUpload } from './components/fileUpload.mjs';
 import { FileDownload } from './components/fileDownload.mjs';
 import { ErrorWrapper } from './components/errorWrapper.mjs';
 
 import { checkCompatibility } from './model/utils/compatibility.mjs';
+import { useHash } from './components/hooks/useHash.mjs';
+import { Route, parseHash } from './components/utils/route.mjs';
+import { invalidLink } from './components/utils/errors.mjs';
 
 function App() {
-    const [hash] = useState(window.location.hash);
-    useEffect(() => {if (hash.length > 0) { window.location.hash = hash; }}, [hash]);
+    const hash = useHash();
+    const route = parseHash(hash);
 
-    const compatibility = checkCompatibility();
-    const [error, setError] = useState(compatibility?.error ?? null);
+    const compatibilityError = checkCompatibility()?.error ?? null;
+
+    // Failures belong to the link they happened on.
+    const [ failure, setFailure ] = useState(null);
+    const setError = (error) => setFailure(error && { hash, error });
+
+    const linkError = useMemo(() => route.name === Route.Invalid ? invalidLink() : null, [route.name]);
+
+    const error = compatibilityError
+        ?? linkError
+        ?? (failure?.hash === hash ? failure.error : null);
 
     return html`
         <div id="app">
             <${Header} />
             <${ErrorWrapper} error=${error}>
-                ${hash.length > 1 
-                        ? html`<${FileDownload} setError=${setError} hash=${hash} />` 
+                ${route.name === Route.Download
+                        ? html`<${FileDownload} key=${hash} setError=${setError} uuid=${route.uuid} secret=${route.secret} />`
                         : html`<${FileUpload} setError=${setError}/>`
                 }
-            </ErrorWrapper>
+            <//>
             <details>
                 <summary>Update on 2026-06-22: Important vulnerability disclosure</summary>
                 <p>

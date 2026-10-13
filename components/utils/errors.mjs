@@ -42,3 +42,16 @@ export function quotaExceeded(cause) {
         }
     };
 }
+
+export function invalidLink() {
+    return {
+        operatorReport: "The location hash is not of the form #<uuid>;<secret>",
+        recoverable: false,
+        userReport: {
+            title: "This link is not valid.",
+            userSuggestions: [
+                "Make sure the whole link was copied, including everything after the #.",
+            ]
+        }
+    };
+}

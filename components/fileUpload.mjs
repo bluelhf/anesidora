@@ -5,6 +5,7 @@ import { PITHOS, UploadState } from "../model/pithos.mjs";
 import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
 import { uploadFailed } from "./utils/errors.mjs";
+import { buildShareLink } from "./utils/route.mjs";
 import { Phase } from "./state/transfer.mjs";
 import { useTransfer } from "./hooks/useTransfer.mjs";
 
@@ -29,11 +30,7 @@ export function FileUpload(props) {
 
             const { secret, uuid } = await PITHOS.upload(file, report);
 
-            if (document.location.hash.length === 0) {
-                setLink(document.location.href + "#" + uuid + ";" + secret);
-            } else {
-                setLink(document.location.href.replace(document.location.hash, "#" + uuid + ";" + secret));
-            }
+            setLink(buildShareLink(document.location.href, uuid, secret));
 
         } catch (error) {
             setError(uploadFailed(error));
