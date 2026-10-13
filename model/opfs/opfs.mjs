@@ -27,7 +27,8 @@ export class Opfs {
     }
 
     async waitForAck(worker, uid) {
-        let listeners = {};
+        let listeners = {"message": [], "error": []};
+
         const promise = new Promise((resolve, reject) => {
             const onMessage = (event) => {
                 if (event.data.uid !== uid) return;
@@ -42,12 +43,16 @@ export class Opfs {
             }
 
             worker.addEventListener("error", onError);
+
+            listeners["message"].push(onMessage);
+            listeners["error"].push(onError);
         });
 
         return await promise.then(() => {
-            for (const listener of Object.keys(listeners)) {
-                worker.removeEventListener(listener, listeners[listener]);
-                delete listeners[listener];
+            for (const type of Object.keys(listeners)) {
+                for (const listener of listeners[type]) {
+                    worker.removeEventListener(type, listener);
+                }
             }
         });
     }
