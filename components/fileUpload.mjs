@@ -5,22 +5,21 @@ import { PITHOS, UploadState } from "../model/pithos.mjs";
 import { TransferProgress } from "./transferProgress.mjs";
 import { capitalise } from "./utils/display.mjs";
 import { uploadFailed } from "./utils/errors.mjs";
+import { Phase } from "./state/transfer.mjs";
+import { useTransfer } from "./hooks/useTransfer.mjs";
 
 export function FileUpload(props) {
     const { setError } = props;
 
-    const [ state, setState ] = useState("ready");
-    const [ total, setTotal ] = useState(1);
+    const { transfer, report } = useTransfer();
     const [ link, setLink ] = useState(null);
-
-    const [ start, setStart ] = useState(null);
+    const [ copied, setCopied ] = useState(false);
 
     const copyLink = async () => {
         await navigator.clipboard.writeText(link);
-        setState("copied");
+        setCopied(true);
     }
 
-    const [progress, setProgress] = useState(0);
     const beginFileUpload = async () => {
         try {
             const handle = await openFile();
@@ -28,23 +27,7 @@ export function FileUpload(props) {
 
             const file = await handle.getFile();
 
-            const { secret, uuid } = await PITHOS.upload(file, (event) => {
-                setState(event.state);
-
-                switch (event.state) {
-                    case UploadState.Encrypting:
-                        setStart(event.start);
-                        setProgress(event.progress);
-                        setTotal(event.total);
-                        break;
-
-                    case UploadState.Uploading:
-                        setStart(event.start);
-                        setProgress(event.progress);
-                        setTotal(event.total);
-                        break;
-                }
-            });
+            const { secret, uuid } = await PITHOS.upload(file, report);
 
             if (document.location.hash.length === 0) {
                 setLink(document.location.href + "#" + uuid + ";" + secret);
@@ -57,22 +40,23 @@ export function FileUpload(props) {
         }
     }
 
+    const { phase, progress, total, start } = transfer;
+
     return html`
         <div class="widget">
             <div>
                 ${(() => {
-                    switch (state) {
-                        case "ready":    return html`<button class="widget" onclick=${beginFileUpload}>Upload file</button>`;
+                    switch (phase) {
+                        case Phase.Ready:    return html`<button class="widget" onclick=${beginFileUpload}>Upload file</button>`;
                         case UploadState.Encrypting:
                         case UploadState.Uploading:  return html`
-                    <${TransferProgress} label=${capitalise(state)} progress=${progress} total=${total} start=${start} />`;
-                        case "copied":
+                    <${TransferProgress} label=${capitalise(phase)} progress=${progress} total=${total} start=${start} />`;
                         case UploadState.Done: return html`
                     Finished!
                     <div id="link-container">
                         Link: 
                         <span id="link">${link}</span>
-                        <button id="copy" onclick=${copyLink}>${state === "copied" ? "Copied!" : "Copy"}</button>
+                        <button id="copy" onclick=${copyLink}>${copied ? "Copied!" : "Copy"}</button>
                     </div>
                 `;
                     }
