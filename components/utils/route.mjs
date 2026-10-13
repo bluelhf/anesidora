@@ -20,3 +20,9 @@ export function buildShareLink(href, uuid, secret) {
     url.hash = uuid + ";" + secret;
     return url.toString();
 }
+
+export function navigateToUpload() {
+    history.pushState(null, "", location.pathname + location.search);
+    // pushState does not fire hashchange, which useHash listens for.
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
