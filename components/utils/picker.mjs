@@ -12,19 +12,22 @@ export async function openFile() {
         return (await window.showOpenFilePicker()
             .catch(abortDefault([])))?.[0];
     } else {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.style.display = "none";
-        document.body.appendChild(input);
-        input.click();
+        return new Promise((resolve) => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.style.display = "none";
 
-        const file = new Promise((resolve, reject) => {
-            input.addEventListener("change", () => {
-                resolve(input.files[0]);
-            }, {once: true});
+            // Stay attached until done: some browsers drop events for a detached input.
+            const finish = (file) => {
+                input.remove();
+                resolve(file ? { getFile: async () => file } : undefined);
+            };
+
+            input.addEventListener("change", () => finish(input.files[0]), { once: true });
+            input.addEventListener("cancel", () => finish(undefined), { once: true });
+
+            document.body.appendChild(input);
+            input.click();
         });
-
-        document.body.removeChild(input);
-        return { getFile: () => file }
     }
 }
